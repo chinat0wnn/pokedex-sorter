@@ -1,28 +1,45 @@
-import logging
+"""
+Pokédex Sort Visualizer — Flask Application Entry Point.
+"""
 import os
 import psutil
-from logging.handlers import RotatingFileHandler
 from flask import Flask
 from flask_cors import CORS
+
+from config import FLASK_HOST, FLASK_PORT, FLASK_DEBUG
+from logger import setup_logging, get_logger
+from middleware import register_middleware
 from routes.pokemon import pokemon_bp
 from routes.sort import sort_bp
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# --- Setup Logging ---
-if not os.path.exists('logs'):
-    os.makedirs('logs')
-handler = RotatingFileHandler('logs/sorting_activity.log', maxBytes=2000000, backupCount=5)
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-app.logger.addHandler(handler)
-app.logger.setLevel(logging.INFO)
+# ─── Initialize logging system ───────────────────────────────────────
+setup_logging(app)
+logger = get_logger("app")
 
+# ─── Register middleware (request ID + request logging) ──────────────
+register_middleware(app)
+
+# ─── Register blueprints ─────────────────────────────────────────────
 app.register_blueprint(pokemon_bp, url_prefix="/api/pokemon")
 app.register_blueprint(sort_bp,    url_prefix="/api/sort")
 
 if __name__ == "__main__":
-    app.logger.info(f"Starting Pokédex Sorter Web Application - Initial Memory Usage: {psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024:.2f} MB")
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    process = psutil.Process(os.getpid())
+    mem_mb = process.memory_info().rss / 1024 / 1024
+    logger.info(
+        f"Starting Pokédex Sorter Web Application",
+        extra={
+            "data": {
+                "event":  "app_startup",
+                "host":   FLASK_HOST,
+                "port":   FLASK_PORT,
+                "debug":  FLASK_DEBUG,
+                "initial_memory_mb": round(mem_mb, 2),
+                "pid":    os.getpid(),
+            }
+        },
+    )
+    app.run(debug=FLASK_DEBUG, host=FLASK_HOST, port=FLASK_PORT)
