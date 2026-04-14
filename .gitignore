@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+backend/venv/
+
+# Logs
+backend/logs/
+
+# Node
+node_modules/
+
+# External tools
+.abacusai/
+silentlycontinue/
+
+# OS
+.DS_Store
+Thumbs.db
