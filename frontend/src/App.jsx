@@ -34,6 +34,7 @@ export default function App() {
   const [view,         setView]         = useState("bars");
   const [speed,        setSpeedState]   = useState(50);
   const [soundOn,      setSoundOn]      = useState(false);
+  const [quantity,     setQuantity]     = useState(151);
   const [shuffled,     setShuffled]     = useState([]);
   const [status,       setStatus]       = useState("Clique em 'Carregar Pokémon' para começar.");
   const [loadingSort,  setLoadingSort]  = useState(false);
@@ -48,17 +49,31 @@ export default function App() {
   // Whenever pokemon data arrives, auto-shuffle
   React.useEffect(() => {
     if (pokemon.length > 0) {
-      const s = shuffle(pokemon);
+      const s = shuffle(pokemon).slice(0, Math.max(1, quantity));
       setShuffled(s);
       sorter.reset(s);
       setStatus("Pokémon carregados! Escolha um algoritmo e clique em Start.");
     }
   }, [pokemon]); // eslint-disable-line
 
+  // ─── Quantity ───────────────────────────────────────────────────
+  function handleQuantity(e) {
+    let q = e.target.value === '' ? 0 : Number(e.target.value);
+    if (q > 151) q = 151;
+    setQuantity(q);
+    
+    if (pokemon.length > 0 && !sorter.running && q > 0) {
+      const s = shuffle(pokemon).slice(0, Math.max(1, q));
+      setShuffled(s);
+      sorter.reset(s);
+      setStatus(`Quantidade ajustada para ${Math.max(1, q)}. Pronto para ordenar.`);
+    }
+  }
+
   // ─── Shuffle ────────────────────────────────────────────────────
   function handleShuffle() {
     if (sorter.running) return;
-    const s = shuffle(pokemon);
+    const s = shuffle(pokemon).slice(0, Math.max(1, quantity));
     setShuffled(s);
     sorter.reset(s);
     setStatus("Embaralhado! Pronto para ordenar.");
@@ -198,6 +213,15 @@ export default function App() {
                 🔀 Shuffle
               </Btn>
             </div>
+          </Section>
+
+          {/* Quantidade */}
+          <Section title="Quantidade">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: "#9ca3af", marginBottom: 4 }}>
+              <span>Total</span>
+              <input type="number" min="10" max="151" value={quantity === 0 ? '' : quantity} onChange={handleQuantity} disabled={sorter.running || pokemon.length === 0} style={{ width: 50, background: "#0f3460", color: "#f5c518", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 4, textAlign: "center", padding: "2px 4px", fontSize: 12, fontWeight: 700, outline: "none", fontFamily: "'Nunito',sans-serif" }} />
+            </div>
+            <input type="range" min="10" max="151" step="1" value={quantity} onChange={handleQuantity} disabled={sorter.running || pokemon.length === 0} style={{ width: "100%", accentColor: "#e94560" }} />
           </Section>
 
           {/* Speed */}

@@ -6,11 +6,15 @@ with method, path, status code, and duration.
 """
 import time
 import uuid
+from collections import defaultdict
 
-from flask import Flask, g, request
+from flask import Flask, g, request, jsonify
 from logger import get_logger
+from config import RATE_LIMIT_PER_MINUTE
 
 logger = get_logger("http")
+
+_requests: dict[str, list[float]] = defaultdict(list)
 
 
 def register_middleware(app: Flask):
@@ -18,6 +22,18 @@ def register_middleware(app: Flask):
 
     @app.before_request
     def _before():
+        ip = request.remote_addr or "unknown"
+        now = time.time()
+        window = 60.0
+
+        # Remove requests fora da janela
+        _requests[ip] = [t for t in _requests[ip] if now - t < window]
+
+        if len(_requests[ip]) >= RATE_LIMIT_PER_MINUTE:
+            return jsonify({"detail": "Muitas requisições. Tente novamente em 1 minuto."}), 429
+
+        _requests[ip].append(now)
+
         g.request_id = uuid.uuid4().hex[:8]
         g.request_start = time.perf_counter()
         logger.info(
