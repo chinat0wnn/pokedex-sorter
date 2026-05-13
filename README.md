@@ -159,6 +159,8 @@ Content-Type: application/json
 ## Funcionalidades
 
 - ✅ 5 algoritmos de ordenação com geração de steps
+- ✅ **Múltiplos Critérios:** Ordene por Pokédex (#), Alfabético (A-Z), Tipo Primário, Base Stats ou Habitat
+- ✅ **Controle de Quantidade:** Escolha via slider ou input de texto exatamente quantos Pokémon (até 151) deseja ordenar
 - ✅ Animação controlável (play/pause/reset)
 - ✅ Slider de velocidade (5ms–300ms)
 - ✅ Dois modos de visualização (barras/cards)
@@ -167,3 +169,4 @@ Content-Type: application/json
 - ✅ Feedback sonoro via Web Audio API
 - ✅ Comparação de todos os algoritmos lado a lado
 - ✅ Cache dos dados da PokéAPI no backend
+- ✅ **Segurança (Rate Limit):** Middleware Flask nativo para controle de requisições por IP e proteção contra sobrecarga
